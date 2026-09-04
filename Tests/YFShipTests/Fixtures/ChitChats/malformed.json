@@ -1,0 +1,5 @@
+{
+  "id": "shipment-malformed",
+  "rates": [
+    {
+      "payment_amount": "13.45"

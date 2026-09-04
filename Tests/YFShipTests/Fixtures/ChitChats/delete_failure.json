@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "synthetic_cleanup_failure",
+    "message": "Synthetic cleanup failure marker."
+  }
+}

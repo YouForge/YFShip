@@ -7,12 +7,10 @@ struct AppConfigurationTests {
     func buildsOneProvider() throws {
         var environment = originEnvironment()
         environment["STALLION_ACCESS_TOKEN"] = "stallion-token"
-        environment["STALLION_PACKAGE_TYPE"] = "regular"
 
         let configuration = try AppConfiguration(environment: environment)
 
         #expect(configuration.configuredProviderIDs == [.stallion])
-        #expect(configuration.stallion?.packageType == "regular")
         #expect(configuration.chitChats == nil)
         #expect(configuration.origin.countryCode == "CA")
         #expect(!configuration.origin.isResidential)
@@ -49,18 +47,24 @@ struct AppConfigurationTests {
         }
     }
 
-    @Test("Treats a package-only provider as partially configured")
-    func rejectsPackageOnlyProvider() {
-        let secret = "private-package-value"
+    @Test("Requires a package type for configured Chit Chats credentials")
+    func requiresChitChatsPackageType() {
+        let secret = "synthetic-access-token"
         var environment = originEnvironment()
-        environment["STALLION_PACKAGE_TYPE"] = secret
+        environment["CHITCHATS_CLIENT_ID"] = "synthetic-client"
+        environment["CHITCHATS_ACCESS_TOKEN"] = secret
 
         do {
             _ = try AppConfiguration(environment: environment)
-            Issue.record("Expected partial provider configuration to throw")
+            Issue.record("Expected a missing package type to throw")
         } catch {
             let message = String(describing: error)
-            #expect(message.contains("STALLION_ACCESS_TOKEN"))
+            #expect(
+                error as? AppConfigurationError == .missingRequiredKeys([
+                    "CHITCHATS_PACKAGE_TYPE"
+                ])
+            )
+            #expect(message.contains("CHITCHATS_PACKAGE_TYPE"))
             #expect(!message.contains(secret))
         }
     }

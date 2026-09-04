@@ -1,0 +1,57 @@
+{
+  "data": [
+    {
+      "postage_type_id": "stallion-tracked-fast",
+      "service": "tracked_fast",
+      "carrier": "Synthetic Carrier",
+      "service_name": "Tracked Fast",
+      "trackable": true,
+      "subtotal": "11.00",
+      "base_rate": "10.00",
+      "total": "12.34",
+      "currency": "CAD",
+      "estimated_delivery_days": 5
+    },
+    {
+      "postage_type_id": "stallion-untracked",
+      "service": "untracked_budget",
+      "carrier": "Synthetic Carrier",
+      "service_name": "Untracked Budget",
+      "trackable": false,
+      "total": 8.25,
+      "currency": "CAD",
+      "estimated_delivery_days": 4
+    },
+    {
+      "postage_type_id": "stallion-slow",
+      "service": "tracked_slow",
+      "carrier": "Synthetic Carrier",
+      "service_name": "Tracked Slow",
+      "trackable": true,
+      "total": "7.00",
+      "currency": "CAD",
+      "estimated_delivery_days": 21
+    },
+    {
+      "postage_type_id": "stallion-boundary",
+      "service": "tracked_boundary",
+      "carrier": "Synthetic Carrier",
+      "service_name": "Tracked Boundary",
+      "trackable": true,
+      "total": "14.00",
+      "currency": "CAD",
+      "estimated_delivery_days": 20
+    },
+    {
+      "postage_type_id": "stallion-unknown",
+      "service": "unknown_evidence",
+      "service_name": "Unknown Evidence",
+      "total": "15.00",
+      "currency": "CAD"
+    }
+  ],
+  "meta": {
+    "timeout_seconds": 15,
+    "excluded_services": []
+  }
+}

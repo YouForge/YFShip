@@ -1,0 +1,13 @@
+{
+  "id": "shipment-partial",
+  "rates": [
+    {
+      "postage_type": "incomplete-rate",
+      "postage_description": "Incomplete Rate",
+      "payment_amount": "not-a-decimal",
+      "currency_code": "cad",
+      "tracking": true,
+      "estimated_delivery_days": 5
+    }
+  ]
+}

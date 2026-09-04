@@ -1,0 +1,11 @@
+{
+  "data": [
+    {
+      "postage_type_id": "incomplete-rate",
+      "service_name": "Incomplete Rate",
+      "trackable": true,
+      "currency": "CAD",
+      "estimated_delivery_days": 5
+    }
+  ]
+}

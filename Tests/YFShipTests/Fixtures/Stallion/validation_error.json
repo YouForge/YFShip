@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "invalid_shipment",
+    "message": "Synthetic shipment validation failure."
+  }
+}

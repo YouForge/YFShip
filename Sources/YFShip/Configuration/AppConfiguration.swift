@@ -24,12 +24,11 @@ enum AppConfigurationError: Error, Equatable, Sendable, LocalizedError, CustomSt
 struct ChitChatsConfiguration: Sendable, Equatable {
     let clientID: String
     let accessToken: String
-    let packageType: String?
+    let packageType: String
 }
 
 struct StallionConfiguration: Sendable, Equatable {
     let accessToken: String
-    let packageType: String?
 }
 
 struct AppConfiguration: Sendable, Equatable {
@@ -138,13 +137,19 @@ struct AppConfiguration: Sendable, Equatable {
         if accessToken == nil {
             missingKeys.append("CHITCHATS_ACCESS_TOKEN")
         }
-        guard missingKeys.isEmpty else {
+        if packageType == nil {
+            missingKeys.append("CHITCHATS_PACKAGE_TYPE")
+        }
+        guard missingKeys.isEmpty,
+              let clientID,
+              let accessToken,
+              let packageType else {
             throw AppConfigurationError.missingRequiredKeys(missingKeys)
         }
 
         return ChitChatsConfiguration(
-            clientID: clientID!,
-            accessToken: accessToken!,
+            clientID: clientID,
+            accessToken: accessToken,
             packageType: packageType
         )
     }
@@ -153,21 +158,12 @@ struct AppConfiguration: Sendable, Equatable {
         from environment: [String: String]
     ) throws -> StallionConfiguration? {
         let accessToken = configuredValue(for: "STALLION_ACCESS_TOKEN", in: environment)
-        let packageType = configuredValue(for: "STALLION_PACKAGE_TYPE", in: environment)
 
-        guard accessToken != nil || packageType != nil else {
+        guard let accessToken else {
             return nil
         }
-        guard let accessToken else {
-            throw AppConfigurationError.missingRequiredKeys([
-                "STALLION_ACCESS_TOKEN"
-            ])
-        }
 
-        return StallionConfiguration(
-            accessToken: accessToken,
-            packageType: packageType
-        )
+        return StallionConfiguration(accessToken: accessToken)
     }
 
     private static func configuredValue(
