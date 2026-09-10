@@ -43,9 +43,9 @@ struct ChitChatsClient: Sendable {
         let data = try await perform(request)
         do {
             return try JSONDecoder().decode(
-                ChitChatsShipmentResponse.self,
+                ChitChatsShipmentEnvelope.self,
                 from: data
-            )
+            ).shipment
         } catch {
             throw ProviderFailure(
                 provider: .chitchats,

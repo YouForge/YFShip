@@ -58,7 +58,8 @@ struct ChitChatsShipmentRequest: Encodable, Sendable {
         lineItems = shipment.items.map {
             ChitChatsLineItem(
                 item: $0,
-                packageWeight: shipment.package.weightLb
+                packageWeight: shipment.package.weightLb,
+                origin: shipment.origin
             )
         }
     }
@@ -112,8 +113,15 @@ struct ChitChatsLineItem: Encodable, Sendable {
     let weightUnit: String
     let hsTariffCode: String?
     let skuCode: String?
+    let manufacturerContact: String
+    let manufacturerStreet: String
+    let manufacturerStreet2: String?
+    let manufacturerCity: String
+    let manufacturerPostalCode: String
+    let manufacturerProvinceCode: String
+    let manufacturerCountryCode: String
 
-    init(item: ShipmentItem, packageWeight: Double) {
+    init(item: ShipmentItem, packageWeight: Double, origin: Address) {
         quantity = item.quantity
         description = item.description
         valueAmount = ChitChatsShipmentRequest.moneyString(item.valueCAD)
@@ -123,6 +131,13 @@ struct ChitChatsLineItem: Encodable, Sendable {
         weightUnit = "lb"
         hsTariffCode = item.hsCode
         skuCode = item.sku
+        manufacturerContact = origin.name ?? origin.company ?? "YouForge"
+        manufacturerStreet = origin.address1
+        manufacturerStreet2 = origin.address2
+        manufacturerCity = origin.city
+        manufacturerPostalCode = origin.postalCode
+        manufacturerProvinceCode = origin.regionCode
+        manufacturerCountryCode = origin.countryCode
     }
 
     enum CodingKeys: String, CodingKey {
@@ -135,7 +150,18 @@ struct ChitChatsLineItem: Encodable, Sendable {
         case weightUnit = "weight_unit"
         case hsTariffCode = "hs_tariff_code"
         case skuCode = "sku_code"
+        case manufacturerContact = "manufacturer_contact"
+        case manufacturerStreet = "manufacturer_street"
+        case manufacturerStreet2 = "manufacturer_street_2"
+        case manufacturerCity = "manufacturer_city"
+        case manufacturerPostalCode = "manufacturer_postal_code"
+        case manufacturerProvinceCode = "manufacturer_province_code"
+        case manufacturerCountryCode = "manufacturer_country_code"
     }
+}
+
+struct ChitChatsShipmentEnvelope: Decodable, Sendable {
+    let shipment: ChitChatsShipmentResponse
 }
 
 struct ChitChatsShipmentResponse: Decodable, Sendable {
@@ -153,6 +179,7 @@ struct ChitChatsRate: Decodable, Sendable {
     let currencyCode: String?
     let tracking: Bool?
     let trackable: Bool?
+    let trackingTypeDescription: String?
     let estimatedDeliveryDays: Int?
     let deliveryDays: Int?
     let estimatedDeliveryDaysMax: Int?
@@ -171,6 +198,7 @@ struct ChitChatsRate: Decodable, Sendable {
         case currencyCode = "currency_code"
         case tracking
         case trackable
+        case trackingTypeDescription = "tracking_type_description"
         case estimatedDeliveryDays = "estimated_delivery_days"
         case deliveryDays = "delivery_days"
         case estimatedDeliveryDaysMax = "estimated_delivery_days_max"
@@ -207,6 +235,10 @@ struct ChitChatsRate: Decodable, Sendable {
         )
         tracking = try? container.decodeIfPresent(Bool.self, forKey: .tracking)
         trackable = try? container.decodeIfPresent(Bool.self, forKey: .trackable)
+        trackingTypeDescription = try? container.decodeIfPresent(
+            String.self,
+            forKey: .trackingTypeDescription
+        )
         estimatedDeliveryDays = try? container.decodeIfPresent(
             Int.self,
             forKey: .estimatedDeliveryDays

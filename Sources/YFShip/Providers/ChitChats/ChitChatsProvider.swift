@@ -74,12 +74,13 @@ struct ChitChatsProvider: ShippingProvider {
 
     private func mapRate(_ rate: ChitChatsRate) throws -> ShippingRate {
         guard let total = (rate.paymentAmount ?? rate.purchaseAmount)?.value,
-              let currency = rate.currencyCode?.nonEmpty
-                ?? rate.currency?.nonEmpty,
               let serviceName = rate.postageDescription?.nonEmpty
                 ?? rate.postageType?.nonEmpty else {
             throw Self.malformedRateFailure
         }
+
+        // Chit Chats' Canadian rate API omits currency on CAD account rates.
+        let currency = rate.currencyCode?.nonEmpty ?? rate.currency?.nonEmpty ?? "CAD"
 
         return ShippingRate(
             provider: .chitchats,
@@ -88,10 +89,25 @@ struct ChitChatsProvider: ShippingProvider {
             serviceName: serviceName,
             total: total,
             currency: currency,
-            isTrackable: rate.tracking ?? rate.trackable,
+            isTrackable: trackingEvidence(for: rate),
             estimatedDeliveryBusinessDays: rate.normalizedDeliveryBusinessDays,
             costComponents: nil
         )
+    }
+
+    private func trackingEvidence(for rate: ChitChatsRate) -> Bool? {
+        if let tracking = rate.tracking ?? rate.trackable {
+            return tracking
+        }
+        guard let description = rate.trackingTypeDescription?.lowercased() else {
+            return nil
+        }
+        if description.contains("no tracking")
+            || description.contains("untracked")
+            || description.contains("without tracking") {
+            return false
+        }
+        return description.contains("tracking") ? true : nil
     }
 
     private static var malformedRateFailure: ProviderFailure {

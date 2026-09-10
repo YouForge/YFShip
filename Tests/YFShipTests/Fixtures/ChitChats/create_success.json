@@ -1,45 +1,45 @@
 {
-  "id": "shipment-456",
-  "rates": [
-    {
-      "postage_type": "chitchats-tracked-fast",
-      "postage_description": "Tracked Fast",
-      "carrier": "Synthetic Carrier",
-      "payment_amount": "13.45",
-      "purchase_amount": "11.00",
-      "currency_code": "cad",
-      "tracking": true,
-      "estimated_delivery_days": 6
-    },
-    {
-      "postage_type": "chitchats-untracked",
-      "postage_description": "Untracked Budget",
-      "purchase_amount": "9.10",
-      "currency_code": "cad",
-      "tracking": false,
-      "delivery_days": 4
-    },
-    {
-      "postage_type": "chitchats-slow",
-      "postage_description": "Tracked Slow",
-      "payment_amount": 7.25,
-      "currency_code": "cad",
-      "trackable": true,
-      "delivery_time_description": "18-22 business days"
-    },
-    {
-      "postage_type": "chitchats-boundary",
-      "postage_description": "Tracked Boundary",
-      "payment_amount": "14.00",
-      "currency_code": "cad",
-      "tracking": true,
-      "estimated_delivery_days": 20
-    },
-    {
-      "postage_type": "chitchats-unknown",
-      "postage_description": "Unknown Evidence",
-      "payment_amount": "15.00",
-      "currency": "CAD"
-    }
-  ]
+  "shipment": {
+    "id": "shipment-456",
+    "rates": [
+      {
+        "postage_type": "chit_chats_select",
+        "postage_description": "Chit Chats Select",
+        "postage_carrier_type": "chit_chats",
+        "payment_amount": "6.77",
+        "purchase_amount": "6.77",
+        "tracking_type_description": "Full tracking included",
+        "delivery_time_description": "Estimated delivery in 2 business days"
+      },
+      {
+        "postage_type": "chit_chats_canada_tracked",
+        "postage_description": "Chit Chats Canada Tracked",
+        "postage_carrier_type": "chit_chats",
+        "payment_amount": "12.36",
+        "purchase_amount": "12.36",
+        "tracking_type_description": "Full tracking included",
+        "delivery_time_description": "Estimated delivery in 4-8 business days"
+      },
+      {
+        "postage_type": "chitchats-slow",
+        "postage_description": "Tracked Slow",
+        "payment_amount": "7.25",
+        "tracking_type_description": "Full tracking included",
+        "delivery_time_description": "18-22 business days"
+      },
+      {
+        "postage_type": "chitchats-boundary",
+        "postage_description": "Tracked Boundary",
+        "payment_amount": "14.00",
+        "tracking_type_description": "Full tracking included",
+        "delivery_time_description": "Estimated delivery in 20 business days"
+      },
+      {
+        "postage_type": "chitchats-unknown",
+        "postage_description": "Unknown Evidence",
+        "purchase_amount": "1.00",
+        "delivery_time_description": "Estimated delivery in 2 business days"
+      }
+    ]
+  }
 }

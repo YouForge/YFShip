@@ -1,7 +1,7 @@
 {
   "data": [
     {
-      "postage_type_id": "incomplete-rate",
+      "postage_type_id": 200,
       "service_name": "Incomplete Rate",
       "trackable": true,
       "currency": "CAD",

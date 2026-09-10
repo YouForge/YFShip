@@ -1,4 +1,6 @@
 {
-  "id": 789,
-  "rates": []
+  "shipment": {
+    "id": 789,
+    "rates": []
+  }
 }

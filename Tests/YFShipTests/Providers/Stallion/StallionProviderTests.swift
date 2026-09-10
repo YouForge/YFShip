@@ -27,32 +27,33 @@ struct StallionProviderTests {
         let rates = response.rates
 
         #expect(response.warning == nil)
-        #expect(rates.count == 5)
+        #expect(rates.count == 3)
+        #expect(rates.map(\.serviceID) == ["200", "82", "81"])
 
         let tracked = try #require(
-            rates.first { $0.serviceID == "stallion-tracked-fast" }
+            rates.first { $0.serviceID == "200" }
         )
-        #expect(tracked.total == Decimal(string: "12.34"))
+        #expect(tracked.serviceName == "Intelcom Standard")
+        #expect(tracked.carrier == "Intelcom")
+        #expect(tracked.currency == "CAD")
+        #expect(tracked.total == Decimal(string: "7.13"))
         #expect(tracked.isTrackable == true)
-        #expect(tracked.estimatedDeliveryBusinessDays == 5)
-        #expect(tracked.costComponents?.base == Decimal(string: "10.00"))
+        #expect(tracked.estimatedDeliveryBusinessDays == 1)
+        #expect(tracked.costComponents?.base == Decimal(string: "6.31"))
 
-        let numeric = try #require(
-            rates.first { $0.serviceID == "stallion-untracked" }
+        let expedited = try #require(
+            rates.first { $0.serviceID == "82" }
         )
-        #expect(numeric.total == Decimal(string: "8.25"))
-        #expect(numeric.isTrackable == false)
+        #expect(expedited.total == Decimal(string: "7.24"))
+        #expect(expedited.isTrackable == true)
+        #expect(expedited.estimatedDeliveryBusinessDays == 2)
 
-        let boundary = try #require(
-            rates.first { $0.serviceID == "stallion-boundary" }
+        let priority = try #require(
+            rates.first { $0.serviceID == "81" }
         )
-        #expect(boundary.estimatedDeliveryBusinessDays == 20)
-
-        let unknown = try #require(
-            rates.first { $0.serviceID == "stallion-unknown" }
-        )
-        #expect(unknown.isTrackable == nil)
-        #expect(unknown.estimatedDeliveryBusinessDays == nil)
+        #expect(priority.total == Decimal(string: "24.26"))
+        #expect(priority.isTrackable == true)
+        #expect(priority.estimatedDeliveryBusinessDays == 2)
 
         let requests = await recorder.snapshot()
         let request = try #require(requests.first)
@@ -80,6 +81,8 @@ struct StallionProviderTests {
         let item = try #require(items.first)
         #expect(item["currency"] as? String == "CAD")
         #expect(item["customs_description"] as? String == "Synthetic accessory")
+        #expect(item["country_of_origin"] as? String == "CA")
+        #expect(item["hs_code"] as? String == "0000.00")
 
         let destination = try #require(body["to_address"] as? [String: Any])
         #expect(destination["country_code"] as? String == "US")
@@ -187,6 +190,55 @@ struct StallionProviderTests {
         } catch {
             Issue.record("Expected ProviderFailure")
         }
+    }
+
+    @Test("String service identifiers still map unchanged", arguments: ["200", "stallion-tracked-fast"])
+    func mapsStringServiceIdentifier(identifier: String) async throws {
+        let data = try JSONSerialization.data(withJSONObject: [
+            "data": [[
+                "postage_type_id": identifier,
+                "service_name": "Synthetic Service",
+                "total": "12.34",
+                "currency": "CAD"
+            ]]
+        ])
+        let rates = try await makeProvider(data: data).rates(for: testShipment())
+        let rate = try #require(rates.first)
+        #expect(rate.serviceID == identifier)
+        #expect(rate.total == Decimal(string: "12.34"))
+    }
+
+    @Test("Missing and null service identifiers remain optional", arguments: ["{}", "{\"postage_type_id\":null}"])
+    func decodesOptionalServiceIdentifier(json: String) throws {
+        let rate = try JSONDecoder().decode(StallionRate.self, from: Data(json.utf8))
+        #expect(rate.postageTypeID == nil)
+    }
+
+    @Test("Unsupported and empty service identifiers fail decoding", arguments: ["true", "1.5", "{}", "[]", "\"\"", "\" \""])
+    func rejectsInvalidServiceIdentifier(json: String) {
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(StallionServiceID.self, from: Data(json.utf8))
+        }
+    }
+
+    @Test("Preserves untracked, delivery-boundary, and unknown evidence mapping")
+    func preservesEligibilityEvidence() async throws {
+        let data = Data(#"{"data":[{"postage_type_id":1,"service_name":"Untracked","trackable":false,"total":8.25,"currency":"CAD","estimated_delivery_days":4},{"postage_type_id":2,"service_name":"Slow","trackable":true,"total":"7.00","currency":"CAD","estimated_delivery_days":21},{"postage_type_id":3,"service_name":"Boundary","trackable":true,"total":"14.00","currency":"CAD","estimated_delivery_days":20},{"postage_type_id":4,"service_name":"Unknown","total":"15.00","currency":"CAD"}]}"#.utf8)
+        let rates = try await makeProvider(data: data).rates(for: testShipment())
+        #expect(rates.count == 4)
+        let untracked = try #require(rates.first { $0.serviceID == "1" })
+        #expect(untracked.total == Decimal(string: "8.25"))
+        #expect(untracked.isTrackable == false)
+        #expect(untracked.estimatedDeliveryBusinessDays == 4)
+        let slow = try #require(rates.first { $0.serviceID == "2" })
+        #expect(slow.isTrackable == true)
+        #expect(slow.estimatedDeliveryBusinessDays == 21)
+        let boundary = try #require(rates.first { $0.serviceID == "3" })
+        #expect(boundary.isTrackable == true)
+        #expect(boundary.estimatedDeliveryBusinessDays == 20)
+        let unknown = try #require(rates.first { $0.serviceID == "4" })
+        #expect(unknown.isTrackable == nil)
+        #expect(unknown.estimatedDeliveryBusinessDays == nil)
     }
 
     private func makeProvider(

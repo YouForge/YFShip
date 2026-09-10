@@ -1,13 +1,13 @@
 {
-  "id": "shipment-partial",
-  "rates": [
-    {
-      "postage_type": "incomplete-rate",
-      "postage_description": "Incomplete Rate",
-      "payment_amount": "not-a-decimal",
-      "currency_code": "cad",
-      "tracking": true,
-      "estimated_delivery_days": 5
-    }
-  ]
+  "shipment": {
+    "id": "shipment-partial",
+    "rates": [
+      {
+        "postage_type": "incomplete-rate",
+        "postage_description": "Incomplete Rate",
+        "tracking_type_description": "Full tracking included",
+        "delivery_time_description": "Estimated delivery in 5 business days"
+      }
+    ]
+  }
 }

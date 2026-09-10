@@ -49,7 +49,7 @@ struct StallionProvider: ShippingProvider {
         return ShippingRate(
             provider: .stallion,
             carrier: rate.carrier?.nonEmpty,
-            serviceID: rate.postageTypeID?.nonEmpty,
+            serviceID: rate.postageTypeID?.value.nonEmpty,
             serviceName: serviceName,
             total: total,
             currency: currency,

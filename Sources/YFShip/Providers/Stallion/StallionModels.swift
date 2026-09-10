@@ -145,7 +145,7 @@ struct StallionRatesResponse: Decodable, Sendable {
 }
 
 struct StallionRate: Decodable, Sendable {
-    let postageTypeID: String?
+    let postageTypeID: StallionServiceID?
     let service: String?
     let carrier: String?
     let serviceName: String?
@@ -167,6 +167,30 @@ struct StallionRate: Decodable, Sendable {
         case total
         case currency
         case estimatedDeliveryDays = "estimated_delivery_days"
+    }
+}
+
+struct StallionServiceID: Decodable, Sendable {
+    let value: String
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+
+        if let string = try? container.decode(String.self),
+           !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            value = string
+            return
+        }
+
+        if let integer = try? container.decode(Int.self) {
+            value = String(integer)
+            return
+        }
+
+        throw DecodingError.dataCorruptedError(
+            in: container,
+            debugDescription: "Expected a service identifier."
+        )
     }
 }
 
