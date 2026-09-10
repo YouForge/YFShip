@@ -239,6 +239,44 @@ struct JSONOutputTests {
         #expect(output == expected)
     }
 
+    @Test("JSON benchmark rounds only the presented average to cents", arguments: [
+        ("22.749909098098089", "22.75"),
+        ("22.1728571428571428571428571428571428571", "22.17"),
+        ("22.1", "22.10"),
+        ("22", "22.00"),
+        ("22.005", "22.01"),
+        ("-22.005", "-22.01")
+    ])
+    func benchmarkAverageRounding(input: String, expected: String) throws {
+        let amount = Decimal(string: input)!
+        let average = BenchmarkAverage(amount: amount, currency: "CAD")
+        let rate = outputRate(provider: .stallion, serviceName: "Standard", total: "6.777")
+        let result = BenchmarkResult(destinationCount: 1, providerResults: [
+            ProviderBenchmarkResult(
+                provider: .stallion, totalDestinationCount: 1,
+                qualifyingDestinationCount: 1, failedDestinationCount: 0,
+                noEligibleDestinationCount: 0,
+                destinationOutcomes: [BenchmarkDestinationOutcome(
+                    benchmarkID: "D1", result: .selected(rate, warning: nil)
+                )],
+                average: average
+            )
+        ])
+        let output = try JSONOutput.benchmark(result)
+        let document = try #require(
+            JSONSerialization.jsonObject(with: Data(output.utf8)) as? [String: Any]
+        )
+        let providers = try #require(document["providers"] as? [[String: Any]])
+        let provider = try #require(providers.first)
+        let encodedAverage = try #require(provider["average"] as? [String: String])
+        #expect(encodedAverage == ["amount": expected, "currency": "CAD"])
+        let destinations = try #require(provider["destinations"] as? [[String: Any]])
+        let selectedRate = try #require(destinations.first?["selectedRate"] as? [String: Any])
+        #expect(selectedRate["amount"] as? String == "6.777")
+        #expect(result.providerResults[0].average?.amount == amount)
+        #expect(average.amount == amount)
+    }
+
     @Test("Money strings are POSIX, ungrouped, exact, and have at least two decimals")
     func moneyFormatting() throws {
         #expect(try OutputMoneyFormatter.string(0) == "0.00")

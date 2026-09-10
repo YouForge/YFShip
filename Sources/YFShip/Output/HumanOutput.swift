@@ -5,6 +5,35 @@ enum HumanOutput {
         _ result: RateComparisonResult,
         shipment: Shipment
     ) -> String {
+        let header = ["Provider", "Service", "Tracking", "ETA", "Total", "Eligibility"]
+        var rows: [[String]] = []
+        for outcome in result.providerOutcomes {
+            guard case .success(let providerResult) = outcome else {
+                continue
+            }
+            for evaluatedRate in providerResult.evaluatedRates {
+                let rate = evaluatedRate.rate
+                let eligibility: String
+                if evaluatedRate.eligible {
+                    eligibility = "Eligible"
+                } else {
+                    let reasons = evaluatedRate.ineligibilityReasons
+                        .map(humanReason)
+                        .joined(separator: ", ")
+                    eligibility = "Ineligible (\(reasons))"
+                }
+                rows.append([
+                    providerResult.provider.displayName,
+                    rate.serviceName,
+                    trackingDescription(rate.isTrackable),
+                    etaDescription(rate.estimatedDeliveryBusinessDays),
+                    "\(rate.currency.uppercased()) \(money(rate.total))",
+                    eligibility
+                ])
+            }
+        }
+        let table = paddedTable([header] + rows)
+        var nextRow = 1
         var lines = [
             "Destination: \(destinationDescription(shipment.destination))",
             "Package: \(measurement(shipment.package.weightLb)) lb; "
@@ -14,7 +43,7 @@ enum HumanOutput {
             "Providers queried: "
                 + result.providerOutcomes.map { $0.provider.displayName }.joined(separator: ", "),
             "",
-            "Provider\tService\tTracking\tETA\tTotal\tEligibility"
+            table[0]
         ]
 
         for outcome in result.providerOutcomes {
@@ -26,28 +55,9 @@ enum HumanOutput {
                     )
                 }
 
-                for evaluatedRate in providerResult.evaluatedRates {
-                    let rate = evaluatedRate.rate
-                    let eligibility: String
-                    if evaluatedRate.eligible {
-                        eligibility = "Eligible"
-                    } else {
-                        let reasons = evaluatedRate.ineligibilityReasons
-                            .map(humanReason)
-                            .joined(separator: ", ")
-                        eligibility = "Ineligible (\(reasons))"
-                    }
-
-                    lines.append(
-                        [
-                            providerResult.provider.displayName,
-                            rate.serviceName,
-                            trackingDescription(rate.isTrackable),
-                            etaDescription(rate.estimatedDeliveryBusinessDays),
-                            "\(rate.currency.uppercased()) \(money(rate.total))",
-                            eligibility
-                        ].joined(separator: "\t")
-                    )
+                for _ in providerResult.evaluatedRates {
+                    lines.append(table[nextRow])
+                    nextRow += 1
                 }
 
                 if let warning = providerResult.warning {
@@ -114,6 +124,24 @@ enum HumanOutput {
         return sections.joined(separator: "\n\n")
     }
 
+    private static func paddedTable(_ rows: [[String]]) -> [String] {
+        guard let header = rows.first else {
+            return []
+        }
+        let widths = header.indices.map { column in
+            rows.map { $0[column].count }.max() ?? 0
+        }
+        return rows.map { row in
+            row.indices.map { column in
+                let field = row[column]
+                guard column < row.count - 1 else {
+                    return field
+                }
+                return field + String(repeating: " ", count: widths[column] - field.count)
+            }.joined(separator: "  ")
+        }
+    }
+
     private static func destinationDescription(_ address: Address) -> String {
         var components = [address.address1]
         if let address2 = address.address2 {
@@ -171,7 +199,8 @@ enum HumanOutput {
             return "Average eligible shipping cost: Unavailable"
         }
         return "Average eligible shipping cost: "
-            + "\(average.currency.uppercased()) \(money(average.amount))"
+            + "\(average.currency.uppercased()) "
+            + money(OutputMoneyFormatter.roundedToCents(average.amount))
     }
 
     private static func warnings(
@@ -213,6 +242,13 @@ enum HumanOutput {
 }
 
 enum OutputMoneyFormatter {
+    static func roundedToCents(_ amount: Decimal) -> Decimal {
+        var amount = amount
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &amount, 2, .plain)
+        return rounded
+    }
+
     static func string(_ amount: Decimal) throws -> String {
         guard !amount.isNaN else {
             throw JSONOutputError.invalidMoney

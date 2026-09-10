@@ -247,7 +247,9 @@ private struct BenchmarkAverageDocument: Encodable {
     let currency: String
 
     init(_ average: BenchmarkAverage) throws {
-        amount = try OutputMoneyFormatter.string(average.amount)
+        amount = try OutputMoneyFormatter.string(
+            OutputMoneyFormatter.roundedToCents(average.amount)
+        )
         currency = average.currency
     }
 }
