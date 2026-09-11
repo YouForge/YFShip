@@ -4,13 +4,13 @@ import Testing
 
 @Suite("Chit Chats manufacturer request fields")
 struct ChitChatsManufacturerTests {
-    @Test("Every line item includes the manufacturer for U.S. and Canadian destinations", arguments: ["US", "CA"])
-    func encodesManufacturerFields(destinationCountry: String) throws {
+    @Test("Every line item includes the manufacturer for U.S. and Canadian destinations", arguments: ["US", "CA"], [1, 2, 3])
+    func encodesManufacturerFields(destinationCountry: String, quantity: Int) throws {
         let base = testShipment()
         let item = try #require(base.items.first)
         let differentOriginItem = ShipmentItem(
             description: item.description,
-            quantity: item.quantity,
+            quantity: quantity,
             valueCAD: item.valueCAD,
             originCountryCode: "US",
             hsCode: item.hsCode,

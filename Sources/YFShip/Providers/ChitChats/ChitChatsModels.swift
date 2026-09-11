@@ -127,7 +127,7 @@ struct ChitChatsLineItem: Encodable, Sendable {
         valueAmount = ChitChatsShipmentRequest.moneyString(item.valueCAD)
         currencyCode = "cad"
         originCountry = item.originCountryCode
-        weight = packageWeight
+        weight = packageWeight / Double(max(item.quantity, 1))
         weightUnit = "lb"
         hsTariffCode = item.hsCode
         skuCode = item.sku
