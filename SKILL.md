@@ -24,6 +24,12 @@ plus `--item-description`, `--item-value-cad`, and
 must be positive. `--quantity` defaults to `1`; `--hs-code` and `--sku` are
 optional.
 
+`--hs-code` is optional in general, but never omit it when invoking `compare`
+for a U.S. destination or when invoking the canonical `benchmark` — U.S.-bound
+shipments require a valid product HS/customs code, and the canonical benchmark
+includes U.S. destinations. Omitting it causes provider validation failure.
+Use the actual product's valid customs classification; do not invent an HS code.
+
 `compare` additionally requires `--to-address1`, `--to-city`, `--to-region`,
 `--to-postal-code`, and `--to-country`. Add `--to-address2` when needed and
 `--to-residential` for a residential destination.

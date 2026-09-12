@@ -45,6 +45,13 @@ ordinary `rates` results for providers that have no warning lifecycle.
 - The benchmark is an unweighted arithmetic mean. Every destination has weight
   `1.0`, and the denominator is the qualifying destination count, not 63.
 - Benchmark requests use at most five destinations concurrently.
+- A valid product HS/customs code (`--hs-code` / `ShipmentItem.hsCode`) is a
+  provider/runtime requirement for U.S.-bound shipments, not a universally
+  required `ArgumentParser` option. Omitting it for a U.S. destination causes
+  provider validation failure in `compare`; the canonical benchmark
+  population includes U.S. destinations, so the same requirement applies to
+  `benchmark`. Do not make `--hs-code` required at the CLI level to work
+  around this — it must stay optional for non-U.S. shipments.
 
 ## Benchmark resource
 

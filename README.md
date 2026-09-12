@@ -143,6 +143,12 @@ Money values in JSON are decimal strings. Every top-level JSON document has
 `"schemaVersion": 1`; scripts should inspect `status`, provider results, and
 `selectedRate` rather than parsing human output.
 
+`--hs-code` is optional at the CLI level, but a valid product HS/customs code
+is required for U.S.-bound shipments. Omitting it when the destination
+country is `US` causes provider validation to fail for `compare`, and the
+canonical `benchmark` population includes U.S. destinations, so the same
+requirement applies there too.
+
 ## Errors and exit codes
 
 Common setup errors identify missing configuration key names or an explicitly
