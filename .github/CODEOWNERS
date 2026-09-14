@@ -1,0 +1,5 @@
+# Default owner for the entire repository
+* @scottklarose
+
+# Protect repository governance files
+/.github/ @scottklarose
