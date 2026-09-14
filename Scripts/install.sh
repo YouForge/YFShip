@@ -7,14 +7,25 @@ project_dir="$(cd -- "${script_dir}/.." && pwd)"
 install_dir="${YFSHIP_INSTALL_DIR:-${HOME}/.local/bin}"
 release_binary="${project_dir}/.build/release/yfship"
 installed_binary="${install_dir}/yfship"
+install_marker="${install_dir}/.yfship-installed"
+marker_content='Managed by YFShip Scripts/install.sh.'
 
-is_mach_o_executable() {
-    local candidate="$1"
-    local description
+is_yfship_build_link() {
+    local target
 
-    [[ -f "${candidate}" && -x "${candidate}" ]] || return 1
-    description="$(file -b "${candidate}" 2>/dev/null || true)"
-    [[ "${description}" == *"Mach-O"* && "${description}" == *"executable"* ]]
+    [[ -L "${installed_binary}" ]] || return 1
+    target="$(readlink "${installed_binary}")"
+    [[ "${target}" == */.build/release/yfship ]]
+}
+
+is_yfship_marker() {
+    [[ ! -L "${install_marker}" && -f "${install_marker}" ]] || return 1
+    cmp -s "${install_marker}" <(printf '%s\n' "${marker_content}")
+}
+
+is_managed_install() {
+    [[ ! -L "${installed_binary}" && -f "${installed_binary}" && -x "${installed_binary}" ]] \
+        && is_yfship_marker
 }
 
 printf 'Building yfship in release mode...\n'
@@ -25,8 +36,13 @@ printf 'Building yfship in release mode...\n'
 
 mkdir -p -- "${install_dir}"
 
+if [[ -e "${install_marker}" || -L "${install_marker}" ]] && ! is_yfship_marker; then
+    printf 'Refusing to overwrite unrelated file: %s\n' "${install_marker}" >&2
+    exit 1
+fi
+
 if [[ -e "${installed_binary}" || -L "${installed_binary}" ]]; then
-    if [[ -L "${installed_binary}" ]] || is_mach_o_executable "${installed_binary}"; then
+    if is_yfship_build_link || is_managed_install; then
         rm -f -- "${installed_binary}"
     else
         printf 'Refusing to overwrite unrelated file: %s\n' "${installed_binary}" >&2
@@ -34,7 +50,8 @@ if [[ -e "${installed_binary}" || -L "${installed_binary}" ]]; then
     fi
 fi
 
-ln -s -- "${release_binary}" "${installed_binary}"
+cp -- "${release_binary}" "${installed_binary}"
+printf '%s\n' "${marker_content}" > "${install_marker}"
 printf 'Installed yfship at %s\n' "${installed_binary}"
 
 case ":${PATH}:" in

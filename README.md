@@ -24,8 +24,8 @@ swift test
 Scripts/install.sh
 ```
 
-The installer builds in release mode and creates `~/.local/bin/yfship`. It
-does not use `sudo`.
+The installer builds in release mode and installs a standalone executable at
+`~/.local/bin/yfship`. It does not use `sudo`.
 
 If `~/.local/bin` is not already on your `PATH`, add it before invoking
 `yfship` by name.

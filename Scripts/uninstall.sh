@@ -4,6 +4,8 @@ set -euo pipefail
 
 install_dir="${YFSHIP_INSTALL_DIR:-${HOME}/.local/bin}"
 installed_binary="${install_dir}/yfship"
+install_marker="${install_dir}/.yfship-installed"
+marker_content='Managed by YFShip Scripts/install.sh.'
 config_file="${HOME}/.config/yfship/.env"
 
 is_yfship_build_link() {
@@ -14,10 +16,23 @@ is_yfship_build_link() {
     [[ "${target}" == */.build/release/yfship ]]
 }
 
+is_yfship_marker() {
+    [[ ! -L "${install_marker}" && -f "${install_marker}" ]] || return 1
+    cmp -s "${install_marker}" <(printf '%s\n' "${marker_content}")
+}
+
+is_managed_install() {
+    [[ ! -L "${installed_binary}" && -f "${installed_binary}" && -x "${installed_binary}" ]] \
+        && is_yfship_marker
+}
+
 if [[ ! -e "${installed_binary}" && ! -L "${installed_binary}" ]]; then
     printf 'No yfship installation found at %s\n' "${installed_binary}"
 elif is_yfship_build_link; then
     rm -f -- "${installed_binary}"
+    printf 'Removed yfship from %s\n' "${installed_binary}"
+elif is_managed_install; then
+    rm -f -- "${installed_binary}" "${install_marker}"
     printf 'Removed yfship from %s\n' "${installed_binary}"
 else
     printf 'Refusing to remove unrelated file: %s\n' "${installed_binary}" >&2
