@@ -22,12 +22,37 @@ cd YFShip
 swift build
 swift test
 Scripts/install.sh
-yfship --help
 ```
 
 The installer builds in release mode and creates `~/.local/bin/yfship`. It
-does not use `sudo` and warns if that directory is not on `PATH`. To use a
-different user-writable location:
+does not use `sudo`.
+
+If `~/.local/bin` is not already on your `PATH`, add it before invoking
+`yfship` by name.
+
+For the default macOS `zsh` shell:
+
+```bash
+touch ~/.zprofile
+grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' ~/.zprofile ||
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
+exec zsh -l
+command -v yfship
+yfship --help
+```
+
+For `bash`:
+
+```bash
+touch ~/.bash_profile
+grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' ~/.bash_profile ||
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bash_profile
+exec bash -l
+command -v yfship
+yfship --help
+```
+
+To use a different user-writable installation directory:
 
 ```bash
 YFSHIP_INSTALL_DIR="$HOME/bin" Scripts/install.sh
